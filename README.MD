@@ -33,23 +33,22 @@ cd ..
 ```
 
 ### USAGE:
-The helper script (in bash) allows you to easily run a desired luteprogram. Note that it finds the target lute directory based on where the script itself is located on the file system.
+The helper script (in bash) allows you to easily build a desired luteprogram. Note that it finds the target lute directory based on where the script itself is located on the file system.
 
 #### EXAMPLE:
 ```sh
 cd luteprograms # if you're not here already
-./helper.sh program1 - args here # run program1 with passed arguments
+./helper.sh program1 # bundle program1 with darklua to ./build/program1.luau
 # OR
-./helper.sh programdemo build # build programdemo to ./build/programdemo
+./helper.sh programdemo build # bundle programdemo like above, but then build the bundle to a native application at ./build/programdemo
 ```
 
-If you don't have bash, you can just use lute like so:
+If you don't have bash, you can just use darklua and lute like so:
 ```sh
+darklua process -c darkluabundle.json program1/main.luau build/program1.luau # bundle program1 with darklua to ./build/program1.luau
 # optionally use ../build/release/lute/cli/lute
-../bootstrap/lute program1/main.luau args here # run program1 with passed arguments
-# OR
-../bootstrap/lute compile programdemo/main.luau build/programdemo # build programdemo to ./build/programdemo
+../bootstrap/lute compile build/program1.luau build/program1.exe # build program1 to ./build/program1.exe
 ```
 
-### Building is WIP!
-If you build and run a lute program and get an error saying `require is not supported in this context` that is because built scripts don't automatically bundle require targets. Support for additional requires is coming soon.
+### OS SUPPORT:
+I test everything on Linux, so there are no guarantees Windows will work
