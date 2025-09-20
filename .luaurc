@@ -1,0 +1,13 @@
+{
+    "languageMode": "strict",
+    "aliases": {
+        "batteries": "../batteries",
+        "lute": "../definitions",
+        "std": "../lute/std/libs",
+
+        "astmanipulation": "./astmanipulation",
+        "astunparser": "./astunparser",
+        "dakimakura": "./dakimakura",
+        "program1": "./program1"
+    }
+}
