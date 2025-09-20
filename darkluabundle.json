@@ -2,10 +2,6 @@
     bundle: {
         require_mode: {
             name: "path",
-
-            sources: {
-                root: "."
-            },
         },
         excludes: [
             "@lute/**"
