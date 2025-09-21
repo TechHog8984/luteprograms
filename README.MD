@@ -5,7 +5,7 @@
 TARGET LUTE VERSION: https://github.com/luau-lang/lute/releases/tag/0.1.0-nightly.20250722
 
 ### SETUP:
-The current files and folders you see (like this README) must be placed in a subdirectory inside the lute source code (or a folder with a directory structure matching what's needed in the .luaurc aliases).
+The files and folders inside this repo (like this README) must be placed in a subdirectory inside the lute source code (or a folder with a directory structure matching what's needed in the .luaurc aliases and helper.sh).
 
 #### EXAMPLE:
 ```sh
@@ -16,7 +16,7 @@ git clone https://github.com/TechHog8984/luteprograms
 ```
 
 #### LUTE EXECUTABLE
-To obtain a lute executable, either download the corresponding asset from the above release, or build manually. Unfortunately, the easiest way to build lute is with luthier (a tool now exclusively written in lute), so you will likely end up needing to download a release anyway (if you're using an unsupported platform, read luthier and manually execute commands, I guess!).
+To obtain a lute executable, either download the corresponding asset from the above release or build manually. Unfortunately, the easiest way to build lute is with luthier (a tool now exclusively written in lute), so you will likely end up needing to download a release anyway (if you're using an unsupported platform, read luthier and manually execute commands, I guess!).
 
 ```sh
 # inside lute
@@ -24,7 +24,7 @@ mkdir bootstrap
 cd bootstrap
 # example for 64bit linux; adjust for your platform
 wget https://github.com/luau-lang/lute/releases/download/0.1.0-nightly.20250722/lute-linux-x86_64.zip
-unizip ./lute*.zip
+unzip ./lute*.zip
 chmod +x ./lute
 cd ..
 # stop here unless you want to build lute
