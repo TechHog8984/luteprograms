@@ -49,6 +49,3 @@ darklua process -c darkluabundle.json program1/main.luau build/program1.luau # b
 # optionally use ../build/release/lute/cli/lute
 ../bootstrap/lute compile build/program1.luau build/program1.exe # build program1 to ./build/program1.exe
 ```
-
-### OS SUPPORT:
-I test everything on Linux, so there are no guarantees Windows will work
