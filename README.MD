@@ -32,6 +32,13 @@ cd ..
 ./bootstrap/lute tools/luthier.luau build lute --config=release # build
 ```
 
+### DEPENDENCIES:
+The only runtime depenedency of luteprograms besides lute is [darklua](https://github.com/seaofvoices/darklua).
+
+I'd recommend installing through `cargo install darklua`.
+
+If you don't have cargo installed, see https://rust-lang.org/learn/get-started/
+
 ### USAGE:
 The helper script (in bash) allows you to easily build a desired luteprogram. Note that it finds the target lute directory based on where the script itself is located on the file system.
 
