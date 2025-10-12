@@ -4,6 +4,10 @@
 local libluau = require("@lute/luau")
 local astmanipulation = require("@astmanipulation")
 
+local replacement_map_expr: { [libluau.AstExpr | libluau.AstStat]: libluau.AstExpr } = {}
+local replacement_map_stat: { [libluau.AstExpr | libluau.AstStat]: libluau.AstStat } = {}
+local no_do_end_map: { [libluau.AstStat]: boolean } = {}
+
 type Unparser = {
     _characters: { string },
     _indent: string,
@@ -36,7 +40,9 @@ type Unparser = {
     unparseFunctionBody: ( Unparser, libluau.AstFunctionBody ) -> (),
     unparseElseIf: ( Unparser, libluau.AstStatElseIf ) -> (),
 
-    unparseRoot: ( Unparser, libluau.AstStat ) -> string
+    unparseRoot: ( Unparser, libluau.AstStat ) -> string,
+
+    _toString: ( Unparser ) -> string
 }
 
 local Unparser = {}
@@ -154,6 +160,18 @@ local quotestyle_map = {
 }
 
 function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
+    do
+        local expr = replacement_map_expr[the_expr]
+        if expr then
+            the_expr = expr
+        else
+            local stat = replacement_map_stat[the_expr]
+            if stat then
+                return self:unparseStat(stat)
+            end
+        end
+    end
+
     if the_expr.tag == "group" then
         if the_expr.tag == "group" and (self._last_insertion_was_newline and not self._at_beginning_of_block) then
             self:string(';')
@@ -180,11 +198,11 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
         self:unparseToken(the_expr)
 
         if isblock then
-            self:string('[')
+            self:string(']')
             for i = 1, the_expr.blockDepth do
                 self:string('=')
             end
-            self:string('[')
+            self:string(']')
         else
             self:string(quotestyle_map[the_expr.quoteStyle])
         end
@@ -232,7 +250,8 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
             end
 
             local at_limit = false
-            for _, entry in the_expr.entries do
+            local entry_count = #the_expr.entries
+            for entry_i, entry in the_expr.entries do
                 if entry.kind == "list" then
                     subunparser:unparseExpr(entry.value)
                 elseif entry.kind == "record" then
@@ -259,24 +278,25 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
                 if sep then
                     subunparser:unparseToken(sep)
                 end
-                if i == 1 then
-                    subunparser:space()
-                else
-                    subunparser:newline()
+                if entry_i ~= entry_count then
+                    if i == 1 then
+                        subunparser:space()
+                    else
+                        subunparser:newline()
+                    end
                 end
 
-                if #subunparser._characters > 100 then
+                if #subunparser._characters > 100 and i == 1 then
                     at_limit = true
                     break
                 end
             end
-            if at_limit then break end
+            if at_limit then continue end
 
             if i == 2 then
                 subunparser:endIndent()
             end
 
-            subunparser._characters[#subunparser._characters] = nil
             self:characters(subunparser._characters)
 
             break
@@ -339,9 +359,28 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
     end
 end
 function Unparser.unparseStat(self: Unparser, the_stat: libluau.AstStat)
+    do
+        local stat = replacement_map_stat[the_stat]
+        if stat then
+            the_stat = stat
+        else
+            local expr = replacement_map_expr[the_stat]
+            if expr then
+                return self:unparseExpr(expr)
+            end
+        end
+    end
+
     local has_do_end = self._next_block_has_do_end
     self._next_block_has_do_end = true
     if the_stat.tag == "block" then
+        if no_do_end_map[the_stat] then
+            local last = the_stat.statements[#the_stat.statements]
+            if last and not (last.tag == "return" or last.tag == "continue" or last.tag == "break") then
+                has_do_end = false
+            end
+        end
+
         if has_do_end then
             self:string("do")
             self:startIndent()
@@ -559,9 +598,6 @@ function Unparser.unparseFunctionBody(self: Unparser, funcbody: libluau.AstFunct
     self:unparseToken(funcbody.openParens)
     self:unparsePunctuatedLocal(funcbody.parameters)
     if funcbody.vararg then
-        if #funcbody.parameters > 0 then
-            self:string(", ")
-        end
         self:unparseToken(funcbody.vararg)
     end
     self:unparseToken(funcbody.closeParens)
@@ -591,17 +627,44 @@ end
 function Unparser.unparseRoot(self: Unparser, root: libluau.AstStat): string
     self:unparseStat(root)
 
+    return self:_toString()
+end
+
+function Unparser._toString(self: Unparser): string
     return table.concat(self._characters)
 end
 
 -- public
 
 local function unparseRoot(root: libluau.AstStat): string
-   local unparser = Unparser.new()
+    local unparser = Unparser.new()
 
-   return unparser:unparseRoot(root)
+    return unparser:unparseRoot(root)
+end
+local function unparseExpression(expr: libluau.AstExpr): string
+    local unparser = Unparser.new()
+
+    unparser:unparseExpr(expr)
+
+    return unparser:_toString()
+end
+
+local function markReplacementExpr(node: libluau.AstExpr | libluau.AstStat, replacement: libluau.AstExpr)
+    replacement_map_stat[node] = nil
+    replacement_map_expr[node] = replacement
+end
+local function markReplacementStat(node: libluau.AstExpr | libluau.AstStat, replacement: libluau.AstStat)
+    replacement_map_expr[node] = nil
+    replacement_map_stat[node] = replacement
+end
+local function markNoDoEnd(stat: libluau.AstStat)
+    no_do_end_map[stat] = true
 end
 
 return {
-    unparseRoot = unparseRoot
+    unparseRoot = unparseRoot,
+    unparseExpression = unparseExpression,
+    markReplacementExpr = markReplacementExpr,
+    markReplacementStat = markReplacementStat,
+    markNoDoEnd = markNoDoEnd
 }

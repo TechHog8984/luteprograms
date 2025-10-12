@@ -9,7 +9,8 @@ export type VarCondition = {
     right: VarConditionValue,
 
     evaluate: ( VarCondition, number ) -> boolean?,
-    getName: ( VarCondition ) -> string?
+    getName: ( VarCondition ) -> string?,
+    getNumber: ( VarCondition ) -> number?,
 }
 export type VarConditionValue = {
     tag: "local",
@@ -106,6 +107,23 @@ function VarCondition.getName(self: VarCondition): string?
     elseif self.right.tag == "condition" then
         local name = self.right.value:getName()
         if name then return name end
+    end
+
+    return nil
+end
+function VarCondition.getNumber(self: VarCondition): number?
+    if self.left.tag == "number" then
+        return self.left.value
+    elseif self.right.tag == "number" then
+        return self.right.value
+    end
+
+    if self.left.tag == "condition" then
+        local number = self.left.value:getNumber()
+        if number then return number end
+    elseif self.right.tag == "condition" then
+        local number = self.right.value:getNumber()
+        if number then return number end
     end
 
     return nil
