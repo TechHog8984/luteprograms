@@ -55,6 +55,7 @@ function basic_ast_manipulation.flipExpression(expression: libluau.AstExpr, allo
     if type(allow_simple_not) == "nil" then allow_simple_not = false end
 
     local inmost = basic_ast_manipulation.getInmostExpression(expression)
+
     if inmost.tag == "boolean" then
         local new: libluau.AstExprConstantBool = table.clone(inmost) :: any
         new.value = not new.value
@@ -69,8 +70,8 @@ function basic_ast_manipulation.flipExpression(expression: libluau.AstExpr, allo
     end
 
     if allow_simple_not then
-        local new: libluau.AstExprUnary = libluau.parseexpr("not 1") :: any
-        new.operand = expression
+        local new: libluau.AstExprUnary = libluau.parseexpr("not (1)") :: any
+        (new.operand :: libluau.AstExprGroup).expression = expression
         return new
     end
 

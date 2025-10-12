@@ -173,7 +173,7 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
     end
 
     if the_expr.tag == "group" then
-        if the_expr.tag == "group" and (self._last_insertion_was_newline and not self._at_beginning_of_block) then
+        if self._last_insertion_was_newline and not self._at_beginning_of_block then
             self:string(';')
         end
         self:unparseToken(the_expr.openParens)
