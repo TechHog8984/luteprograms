@@ -14,6 +14,7 @@ type Unparser = {
 
     _last_insertion_was_newline: boolean,
     _at_beginning_of_block: boolean,
+    _in_table: boolean,
     _next_block_has_do_end: boolean,
 
     string: ( Unparser, string ) -> (),
@@ -54,6 +55,7 @@ function Unparser.new(): Unparser
         _indent = "",
         _last_insertion_was_newline = false,
         _at_beginning_of_block = false,
+        _in_table = false,
         _next_block_has_do_end = false
     }
 
@@ -173,7 +175,7 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
     end
 
     if the_expr.tag == "group" then
-        if self._last_insertion_was_newline and not self._at_beginning_of_block then
+        if self._last_insertion_was_newline and not self._at_beginning_of_block and not self._in_table then
             self:string(';')
         end
         self:unparseToken(the_expr.openParens)
@@ -241,6 +243,7 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
         -- First pass doesnt use new lines; second pass does.
 
         local subunparser = Unparser.new()
+        subunparser._in_table = true
         for i = 1, 2 do
             subunparser._characters = {}
             subunparser._indent = self._indent
