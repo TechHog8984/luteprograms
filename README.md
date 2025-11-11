@@ -33,7 +33,7 @@ cd ..
 ```
 
 ### DEPENDENCIES:
-The only runtime depenedency of luteprograms besides lute is [darklua](https://github.com/seaofvoices/darklua).
+The only runtime dependency of luteprograms (besides lute) is [darklua](https://github.com/seaofvoices/darklua).
 
 I'd recommend installing through `cargo install darklua`.
 
@@ -45,7 +45,7 @@ The helper script (in bash) allows you to easily build a desired luteprogram. No
 #### EXAMPLE:
 ```sh
 cd luteprograms # if you're not here already
-./helper.sh program1 # bundle program1 with darklua to ./build/program1.luau
+./helper.sh program1 bundle # bundle program1 with darklua to ./build/program1.luau
 # OR
 ./helper.sh programdemo build # bundle programdemo like above, but then build the bundle to a native application at ./build/programdemo
 ```
@@ -54,5 +54,10 @@ If you don't have bash, you can just use darklua and lute like so:
 ```sh
 darklua process -c darkluabundle.json program1/main.luau build/program1.luau # bundle program1 with darklua to ./build/program1.luau
 # optionally use ../build/release/lute/cli/lute
-../bootstrap/lute compile build/program1.luau build/program1.exe # build program1 to ./build/program1.exe
+../bootstrap/lute compile build/programdemo.luau build/programdemo.exe # build programdemo to ./build/programdemo.exe
+```
+
+When developing a project, it is often better to just run the code pre-bundle for better error handling and less overhead, which you can do like so:
+```sh
+./helper.sh program1 run [arguments]
 ```
