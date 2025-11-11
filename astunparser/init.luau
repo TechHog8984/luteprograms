@@ -6,6 +6,7 @@ local astmanipulation = require("@astmanipulation")
 
 local replacement_map_expr: { [libluau.AstExpr | libluau.AstStat]: libluau.AstExpr } = {}
 local replacement_map_stat: { [libluau.AstExpr | libluau.AstStat]: libluau.AstStat } = {}
+local stat_ignore_map: { [libluau.AstStat]: boolean } = {}
 local no_do_end_map: { [libluau.AstStat]: boolean } = {}
 
 type Unparser = {
@@ -209,7 +210,9 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
             self:string(quotestyle_map[the_expr.quoteStyle])
         end
     elseif the_expr.tag == "local" then
-        self:unparseToken(the_expr.token)
+        -- self:unparseToken(the_expr.token)
+        -- I'm doing this simply because then a rewriter with visitLocal will have an effect here
+        self:string(the_expr["local"].name.text)
     elseif the_expr.tag == "global" then
         self:unparseToken(the_expr.name)
     elseif the_expr.tag == "call" then
@@ -362,10 +365,17 @@ function Unparser.unparseExpr(self: Unparser, the_expr: libluau.AstExpr)
     end
 end
 function Unparser.unparseStat(self: Unparser, the_stat: libluau.AstStat)
+    if stat_ignore_map[the_stat] then
+        return
+    end
+
     do
         local stat = replacement_map_stat[the_stat]
         if stat then
             the_stat = stat
+            if stat_ignore_map[the_stat] then
+                return
+            end
         else
             local expr = replacement_map_expr[the_stat]
             if expr then
@@ -660,6 +670,9 @@ local function markReplacementStat(node: libluau.AstExpr | libluau.AstStat, repl
     replacement_map_expr[node] = nil
     replacement_map_stat[node] = replacement
 end
+local function markIgnoreStat(stat: libluau.AstStat)
+    stat_ignore_map[stat] = true
+end
 local function markNoDoEnd(stat: libluau.AstStat)
     no_do_end_map[stat] = true
 end
@@ -669,5 +682,6 @@ return {
     unparseExpression = unparseExpression,
     markReplacementExpr = markReplacementExpr,
     markReplacementStat = markReplacementStat,
-    markNoDoEnd = markNoDoEnd
+    markNoDoEnd = markNoDoEnd,
+    markIgnoreStat = markIgnoreStat
 }
