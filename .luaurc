@@ -8,8 +8,6 @@
         "astmanipulation": "./astmanipulation",
         "astunparser": "./astunparser",
         "astrewriter": "./astrewriter",
-        "cli": "./cli",
-        "dakimakura": "./dakimakura",
-        "program1": "./program1"
+        "cli": "./cli"
     }
 }
