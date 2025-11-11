@@ -8,29 +8,36 @@ error() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -z "$1" ]; then
-    echo "helper.sh - bundle script and, if desired, compile to native executable"
-    echo "Usage: helper.sh directoryname [option]"
+    echo "helper.sh - run or bundle script and, if desired, compile to native executable"
+    echo "Usage: helper.sh directoryname option"
     echo ""
     echo "Note: directoryname must either be the name of a folder in the working directory, or '.' which will use the working directory instead"
     echo ""
     echo "Options:"
-    echo "  build  -  build to an executable instead of run"
+    echo "  run    -  run the project with all arguments passed"
+    echo "  bundle -  bundle project with darklua"
+    echo "  build  -  bundle then build to an executable"
     echo "  wine   -  build, but use wine to build a windows executable"
     exit 0
 fi
 
+RUN=0
 BUILD=0
 WINE=0
 
 if [ -n "$2" ]; then
-    if [ "$2" = "build" ]; then
+    if [ "$2" = "run" ]; then
+        RUN=1
+    elif [ "$2" = "build" ]; then
         BUILD=1
     elif [ "$2" = "wine" ]; then
         BUILD=1
         WINE=1
-    else
-        error "unexpected option" "'$2'" "; expected 'build' or 'wine'"
+    elif [ "$2" != "bundle" ]; then
+        error "unexpected option" "'$2'" "; expected 'run', 'bundle', 'build' or 'wine'"
     fi
+else
+    error "expected option ('run', 'bundle', 'build', or 'wine')"
 fi
 
 TARGET_PROGRAM=$1
@@ -66,6 +73,15 @@ COMPILED_SUFFIX=
 if [ $WINE = 1 ]; then
     LUTE_PATH="wine "$LUTE_PATH
     COMPILED_SUFFIX=".exe"
+fi
+
+if [ $RUN = 1 ]; then
+    shift
+    shift
+
+    $LUTE_PATH run "$TARGET_DIR"/main.luau "$@"
+
+    exit 0
 fi
 
 echo "bundling..."
