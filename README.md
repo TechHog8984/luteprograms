@@ -29,7 +29,7 @@ chmod +x ./lute
 cd ..
 # stop here unless you want to build lute
 ./bootstrap/lute tools/luthier.luau fetch lute # download dependencies
-./bootstrap/lute tools/luthier.luau build lute --config=release # build
+./bootstrap/lute tools/luthier.luau build lute config=release # build
 ```
 
 ### DEPENDENCIES:
