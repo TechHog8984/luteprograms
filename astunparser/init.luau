@@ -387,6 +387,8 @@ function Unparser.unparseStat(self: Unparser, the_stat: libluau.AstStat)
     local has_do_end = self._next_block_has_do_end
     self._next_block_has_do_end = true
     if the_stat.tag == "block" then
+        local old_in_table = self._in_table
+        self._in_table = false
         if no_do_end_map[the_stat] then
             local last = the_stat.statements[#the_stat.statements]
             if last and not (last.tag == "return" or last.tag == "continue" or last.tag == "break") then
@@ -415,6 +417,8 @@ function Unparser.unparseStat(self: Unparser, the_stat: libluau.AstStat)
             self:endIndent()
             self:string("end")
         end
+
+        self._in_table = old_in_table
     elseif the_stat.tag == "conditional" then
         local condition = the_stat.condition
         local consequent = the_stat.consequent
